@@ -1,0 +1,1142 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>冻存细胞管理</title>
+  <style>
+    :root {
+      --bg: #eef4f6;
+      --bg-soft: #f8fbfc;
+      --panel: #ffffff;
+      --panel-soft: #f5f9fb;
+      --text: #102a31;
+      --muted: #60737c;
+      --line: rgba(16, 42, 49, 0.14);
+      --line-strong: rgba(16, 42, 49, 0.22);
+      --primary: #1f7aa8;
+      --primary-dark: #145d82;
+      --accent: #102a31;
+      --accent-soft: #dcebf2;
+      --success: #087f5b;
+      --warning: #b45309;
+      --danger: #b42318;
+      --shadow: 0 14px 34px rgba(16, 42, 49, 0.10);
+      --shadow-soft: 0 8px 22px rgba(16, 42, 49, 0.07);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      min-height: 100%;
+      background: var(--bg);
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+      background:
+        linear-gradient(180deg, #ffffff 0%, #f4f9fb 32%, #e8f0f3 100%);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      line-height: 1.45;
+    }
+
+    img {
+      display: block;
+      max-width: 100%;
+    }
+
+    .app {
+      width: min(100%, 520px);
+      min-height: 100vh;
+      margin: 0 auto;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.74) 0%, rgba(238, 244, 246, 0.98) 180px, var(--bg) 100%);
+      padding: 14px 14px 30px;
+      overflow-x: hidden;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      margin: -14px -14px 16px;
+      padding: 12px 14px 13px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+      box-shadow: 0 10px 22px rgba(16, 42, 49, 0.06);
+      overflow: hidden;
+    }
+
+    .brand-strip {
+      display: flex;
+      justify-content: center;
+      padding: 1px 0 10px;
+    }
+
+    .brand-strip img {
+      width: min(248px, calc(100vw - 84px));
+      max-height: 42px;
+      object-fit: contain;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 760;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+      font-weight: 740;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 0 0 8px;
+      font-size: 15px;
+      font-weight: 720;
+      letter-spacing: 0;
+    }
+
+    .member-pill {
+      min-width: 74px;
+      max-width: 150px;
+      padding: 6px 10px;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      color: var(--text);
+      background: #fff;
+      font-size: 13px;
+      font-weight: 680;
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(16, 42, 49, 0.05);
+    }
+
+    main {
+      display: grid;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .panel {
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow-soft);
+      padding: 15px;
+      min-width: 0;
+    }
+
+    .brand-panel {
+      position: relative;
+      overflow: hidden;
+      background:
+        linear-gradient(135deg, #ffffff 0%, #f8fbfc 58%, #edf5f8 100%);
+      box-shadow: var(--shadow);
+    }
+
+    .brand-panel > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .panel-brand {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .panel-brand > div {
+      min-width: 0;
+    }
+
+    .panel-brand img {
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+      flex: 0 0 auto;
+      padding: 7px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 8px 18px rgba(16, 42, 49, 0.08);
+    }
+
+    .panel-brand h2 {
+      margin: 0;
+    }
+
+    .eyebrow {
+      margin: 0 0 4px;
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 760;
+      letter-spacing: 0;
+    }
+
+    .stack {
+      display: grid;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .row > * { flex: 1; }
+    .row.tight > * { flex: 0 0 auto; }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 680;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      min-width: 0;
+      min-height: 46px;
+      border: 1px solid #c7d5dc;
+      border-radius: 8px;
+      background: #fbfdfe;
+      color: var(--text);
+      padding: 10px 11px;
+      font: inherit;
+      font-size: 16px;
+      outline: none;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    textarea {
+      min-height: 88px;
+      resize: vertical;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--primary);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(31, 122, 168, 0.14);
+    }
+
+    button {
+      min-width: 0;
+      min-height: 46px;
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 13px;
+      font: inherit;
+      font-size: 16px;
+      font-weight: 740;
+      background: #e8f0f4;
+      color: var(--text);
+      cursor: pointer;
+      box-shadow: 0 5px 14px rgba(16, 42, 49, 0.07);
+      transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+    }
+
+    button:active {
+      transform: translateY(1px);
+      box-shadow: 0 3px 8px rgba(16, 42, 49, 0.08);
+    }
+
+    button.primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    button.primary:active { background: var(--primary-dark); }
+    button.blue { background: var(--accent); color: #fff; }
+    button.warning { background: #fff7ed; color: var(--warning); border: 1px solid #fed7aa; }
+    button.danger { background: #fef3f2; color: var(--danger); border: 1px solid #fecaca; }
+    button.ghost { background: #fff; border: 1px solid var(--line-strong); color: var(--text); }
+    button.small { min-height: 38px; padding: 7px 10px; font-size: 14px; }
+    button:disabled { opacity: 0.54; cursor: not-allowed; }
+
+    .menu-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .menu-grid button {
+      min-height: 58px;
+      text-align: left;
+      padding-left: 16px;
+      padding-right: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .menu-grid button::after {
+      content: ">";
+      opacity: 0.58;
+      font-weight: 760;
+    }
+
+    .notice,
+    .error {
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 14px;
+    }
+
+    .notice { background: #edf8f4; color: #05603a; border: 1px solid #b7e5d2; }
+    .error { background: #fef3f2; color: var(--danger); border: 1px solid #fecdca; }
+    .muted {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      overflow-wrap: anywhere;
+    }
+    .notice,
+    .error {
+      overflow-wrap: anywhere;
+    }
+    .empty { color: var(--muted); text-align: center; padding: 26px 10px; }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .filters .wide { grid-column: 1 / -1; }
+
+    .card-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .cell-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--primary);
+      border-radius: 8px;
+      padding: 12px;
+      display: grid;
+      gap: 9px;
+      box-shadow: 0 8px 18px rgba(16, 42, 49, 0.06);
+    }
+
+    .cell-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .cell-title {
+      min-width: 0;
+      font-weight: 760;
+      font-size: 16px;
+      word-break: break-word;
+    }
+
+    .status {
+      flex: 0 0 auto;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 12px;
+      font-weight: 740;
+      color: #0b6044;
+      background: #dff6ec;
+      white-space: nowrap;
+    }
+
+    .status.out {
+      color: #7a271a;
+      background: #fee4e2;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .meta-grid span {
+      overflow-wrap: anywhere;
+    }
+
+    .card-actions,
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .card-actions button,
+    .toolbar button {
+      flex: 1 1 120px;
+    }
+
+    .loading {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      align-items: center;
+      justify-content: center;
+      background: rgba(248, 251, 252, 0.72);
+      color: var(--primary);
+      font-weight: 760;
+      backdrop-filter: blur(3px);
+    }
+
+    .loading.show { display: flex; }
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      background: rgba(16, 42, 49, 0.50);
+      padding: 18px 12px;
+      overflow: auto;
+    }
+
+    .modal.show {
+      display: grid;
+      align-items: start;
+    }
+
+    .modal-box {
+      width: min(100%, 460px);
+      margin: 0 auto;
+      background: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 20px 48px rgba(16, 42, 49, 0.26);
+      display: grid;
+      gap: 12px;
+    }
+
+    .record-list {
+      margin: 0;
+      padding-left: 20px;
+      display: grid;
+      gap: 8px;
+      word-break: break-word;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 380px) {
+      .brand-strip img {
+        width: min(218px, calc(100vw - 96px));
+        max-height: 34px;
+      }
+      h1 { font-size: 16px; }
+      .member-pill { max-width: 116px; }
+      .panel-brand img {
+        width: 62px;
+        height: 62px;
+      }
+    }
+
+    @media (min-width: 521px) {
+      body { background: #dfe9ee; }
+      .app {
+        border-left: 1px solid var(--line);
+        border-right: 1px solid var(--line);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand-strip">
+        <img src="assets/TERM_Logo-e.png" alt="TERM The Group of Biomimetic Multifunctional Hydrogel">
+      </div>
+      <div class="topbar">
+        <h1>冻存细胞管理</h1>
+        <div class="member-pill" id="memberPill">未选择</div>
+      </div>
+    </header>
+    <main id="app"></main>
+  </div>
+  <div class="loading" id="loading">正在处理...</div>
+  <div class="modal" id="modal"></div>
+
+  <script>
+    const DEFAULT_API_BASE = "https://YOUR-WORKER-SUBDOMAIN.workers.dev";
+    const RECORD_SPLIT_RE = /\s*\|\|\s*|\r?\n/;
+
+    const state = {
+      apiBase: localStorage.getItem("cryoApiBase") || DEFAULT_API_BASE,
+      member: localStorage.getItem("cryoMember") || "",
+      adminToken: localStorage.getItem("cryoAdminToken") || "",
+      members: [],
+      cells: [],
+      visibleCount: 80,
+      filters: { rack: "all", layer: "all", status: "在库" },
+    };
+
+    const app = document.getElementById("app");
+    const memberPill = document.getElementById("memberPill");
+    const loading = document.getElementById("loading");
+    const modal = document.getElementById("modal");
+
+    init();
+
+    async function init() {
+      updateMemberPill();
+      if (needsApiSetup()) {
+        renderApiSetup();
+        return;
+      }
+      try {
+        await loadMembers();
+        if (!state.member || !state.members.includes(state.member)) renderMemberSelect();
+        else renderMenu();
+      } catch (error) {
+        renderApiSetup(error.message);
+      }
+    }
+
+    function needsApiSetup() {
+      return !state.apiBase || state.apiBase.includes("YOUR-WORKER");
+    }
+
+    function api(path, options = {}) {
+      const headers = { ...(options.headers || {}) };
+      if (options.body && !(options.body instanceof FormData)) {
+        headers["Content-Type"] = "application/json";
+      }
+      if (options.admin) {
+        headers.Authorization = `Bearer ${state.adminToken}`;
+      }
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), options.timeout || 18000);
+
+      return fetch(`${state.apiBase.replace(/\/+$/, "")}${path}`, {
+        ...options,
+        headers,
+        body: options.body && !(options.body instanceof FormData) ? JSON.stringify(options.body) : options.body,
+        signal: controller.signal,
+      }).then(async (response) => {
+        clearTimeout(timer);
+        if (options.raw) {
+          if (!response.ok) throw new Error(await response.text() || "请求失败。");
+          return response;
+        }
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || "请求失败。");
+        return data;
+      }).catch((error) => {
+        clearTimeout(timer);
+        if (error.name === "AbortError") throw new Error("请求超时，请稍后重试。");
+        throw error;
+      });
+    }
+
+    function setLoading(show, text = "正在处理...") {
+      loading.textContent = text;
+      loading.classList.toggle("show", show);
+    }
+
+    function updateMemberPill() {
+      memberPill.textContent = state.member || "未选择";
+    }
+
+    function showToast(message, type = "notice") {
+      const box = document.createElement("div");
+      box.className = type;
+      box.textContent = message;
+      app.prepend(box);
+      setTimeout(() => box.remove(), 2600);
+    }
+
+    function renderApiSetup(error = "") {
+      app.innerHTML = `
+        <section class="panel stack brand-panel">
+          <div class="panel-brand">
+            <img src="assets/TERM_Logo-b.png" alt="TERM">
+            <div>
+              <p class="eyebrow">TERM Cryostorage</p>
+              <h2>连接 Worker</h2>
+            </div>
+          </div>
+          ${error ? `<div class="error">${escapeHtml(error)}</div>` : ""}
+          <label>Worker 地址
+            <input id="apiBaseInput" value="${escapeAttr(needsApiSetup() ? "" : state.apiBase)}" placeholder="https://xxx.workers.dev">
+          </label>
+          <button class="primary" id="saveApiBase">保存并连接</button>
+          <p class="muted">部署后只需配置一次。</p>
+        </section>
+      `;
+      const urlApi = new URLSearchParams(location.search).get("api");
+      if (urlApi && /^https:\/\//.test(urlApi)) {
+        state.apiBase = urlApi;
+        localStorage.setItem("cryoApiBase", urlApi);
+        history.replaceState(null, "", location.pathname);
+        init();
+        return;
+      }
+      document.getElementById("saveApiBase").onclick = () => {
+        const value = document.getElementById("apiBaseInput").value.trim().replace(/\/+$/, "");
+        if (!/^https:\/\/.+/.test(value)) {
+          showToast("请输入 https 开头的 Worker 地址。", "error");
+          return;
+        }
+        state.apiBase = value;
+        localStorage.setItem("cryoApiBase", value);
+        init();
+      };
+    }
+
+    async function loadMembers() {
+      setLoading(true, "正在读取人员...");
+      try {
+        const data = await api("/members");
+        state.members = data.members || [];
+        if (!state.members.length) throw new Error("人员表为空，请先在腾讯文档人员表中录入姓名。");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function renderMemberSelect() {
+      updateMemberPill();
+      app.innerHTML = `
+        <section class="panel stack brand-panel">
+          <div class="panel-brand">
+            <img src="assets/TERM_Logo-b.png" alt="TERM">
+            <div>
+              <p class="eyebrow">TERM Cryostorage</p>
+              <h2>选择操作人员</h2>
+            </div>
+          </div>
+          <label>姓名
+            <select id="memberSelect">
+              <option value="">请选择</option>
+              ${state.members.map((name) => `<option value="${escapeAttr(name)}">${escapeHtml(name)}</option>`).join("")}
+            </select>
+          </label>
+          <button class="primary" id="confirmMember">进入</button>
+        </section>
+      `;
+      document.getElementById("memberSelect").value = state.member;
+      document.getElementById("confirmMember").onclick = () => {
+        const name = document.getElementById("memberSelect").value;
+        if (!name) return showToast("请先选择姓名。", "error");
+        state.member = name;
+        localStorage.setItem("cryoMember", name);
+        updateMemberPill();
+        renderMenu();
+      };
+    }
+
+    function renderMenu() {
+      updateMemberPill();
+      app.innerHTML = `
+        <section class="panel stack brand-panel">
+          <div class="panel-brand">
+            <img src="assets/TERM_Logo-b.png" alt="TERM">
+            <div>
+              <p class="eyebrow">TERM Cryostorage</p>
+              <h2>主菜单</h2>
+            </div>
+          </div>
+          <div class="menu-grid">
+            <button class="primary" id="goView">查看细胞库</button>
+            <button class="blue" id="goStore">存入细胞</button>
+            <button id="goTake">取出细胞</button>
+          </div>
+          <div class="toolbar">
+            <button class="ghost" id="switchMember">切换人员</button>
+            <button class="ghost" id="goAdmin">${state.adminToken ? "管理员已登录" : "管理员登录"}</button>
+            ${state.adminToken ? `<button class="ghost" id="changeApiAdmin">修改 Worker 地址</button>` : ""}
+          </div>
+        </section>
+      `;
+      document.getElementById("goView").onclick = renderCellLibrary;
+      document.getElementById("goStore").onclick = renderStoreForm;
+      document.getElementById("goTake").onclick = renderTakeoutForm;
+      document.getElementById("switchMember").onclick = () => {
+        state.member = "";
+        localStorage.removeItem("cryoMember");
+        renderMemberSelect();
+      };
+      document.getElementById("goAdmin").onclick = showAdminLogin;
+      const changeApiAdmin = document.getElementById("changeApiAdmin");
+      if (changeApiAdmin) changeApiAdmin.onclick = () => renderApiSetup();
+    }
+
+    function backButton() {
+      return `<button class="ghost small" id="backMenu">返回</button>`;
+    }
+
+    async function renderCellLibrary() {
+      app.innerHTML = `
+        <section class="panel stack brand-panel">
+          <div class="row tight">
+            ${backButton()}
+            <h2 style="margin:0; flex:1;">细胞库</h2>
+          </div>
+          <div class="filters">
+            <label>提手
+              <select id="filterRack">${optionRange(6, "全部提手")}</select>
+            </label>
+            <label>层数
+              <select id="filterLayer">${optionRange(5, "全部层数")}</select>
+            </label>
+            <label class="wide">状态
+              <select id="filterStatus">
+                <option value="all">全部状态</option>
+                <option value="在库">在库</option>
+                <option value="已取出">已取出</option>
+              </select>
+            </label>
+          </div>
+          <div class="toolbar">
+            <button class="primary" id="loadCells">查询</button>
+            <button class="ghost" id="adminBtn">${state.adminToken ? "退出管理员" : "管理员登录"}</button>
+            ${state.adminToken ? `<button class="ghost" id="changeApiAdmin">修改 Worker 地址</button>` : ""}
+            ${state.adminToken ? `<button class="warning" id="exportBtn">导出 CSV</button>` : ""}
+          </div>
+        </section>
+        <section class="stack" id="cellResults"></section>
+      `;
+      document.getElementById("backMenu").onclick = renderMenu;
+      document.getElementById("filterRack").value = state.filters.rack;
+      document.getElementById("filterLayer").value = state.filters.layer;
+      document.getElementById("filterStatus").value = state.filters.status;
+      document.getElementById("loadCells").onclick = loadCells;
+      document.getElementById("adminBtn").onclick = () => {
+        if (state.adminToken) {
+          state.adminToken = "";
+          localStorage.removeItem("cryoAdminToken");
+          renderCellLibrary();
+        } else {
+          showAdminLogin();
+        }
+      };
+      if (state.adminToken) document.getElementById("exportBtn").onclick = exportCells;
+      const changeApiAdmin = document.getElementById("changeApiAdmin");
+      if (changeApiAdmin) changeApiAdmin.onclick = () => renderApiSetup();
+      await loadCells();
+    }
+
+    async function loadCells() {
+      state.filters = {
+        rack: document.getElementById("filterRack").value,
+        layer: document.getElementById("filterLayer").value,
+        status: document.getElementById("filterStatus").value,
+      };
+      state.visibleCount = 80;
+      const query = new URLSearchParams();
+      Object.entries(state.filters).forEach(([key, value]) => {
+        if (value && value !== "all") query.set(key, value);
+      });
+      setLoading(true, "正在读取细胞库...");
+      try {
+        const data = await api(`/cells?${query.toString()}`);
+        state.cells = data.cells || [];
+        renderCellCards();
+      } catch (error) {
+        document.getElementById("cellResults").innerHTML = `<div class="error">${escapeHtml(error.message)}</div>`;
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function renderCellCards() {
+      const target = document.getElementById("cellResults");
+      if (!state.cells.length) {
+        target.innerHTML = `<div class="panel empty">没有符合条件的细胞记录</div>`;
+        return;
+      }
+      const visible = state.cells.slice(0, state.visibleCount);
+      target.innerHTML = `
+        <div class="muted">共 ${state.cells.length} 条，当前显示 ${visible.length} 条</div>
+        <div class="card-list">
+          ${visible.map(cellCardHtml).join("")}
+        </div>
+        ${visible.length < state.cells.length ? `<button class="ghost" id="loadMore">加载更多</button>` : ""}
+      `;
+      target.querySelectorAll("[data-records]").forEach((button) => {
+        button.onclick = () => {
+          const cell = state.cells.find((item) => item.cellId === button.dataset.records);
+          showRecords(cell);
+        };
+      });
+      target.querySelectorAll("[data-edit]").forEach((button) => {
+        button.onclick = () => {
+          const cell = state.cells.find((item) => item.cellId === button.dataset.edit);
+          showEditCell(cell);
+        };
+      });
+      const loadMore = document.getElementById("loadMore");
+      if (loadMore) {
+        loadMore.onclick = () => {
+          state.visibleCount += 80;
+          renderCellCards();
+        };
+      }
+    }
+
+    function cellCardHtml(cell) {
+      const out = cell.status === "已取出";
+      return `
+        <article class="cell-card">
+          <div class="cell-head">
+            <div class="cell-title">${escapeHtml(cell.name || "未命名细胞")}</div>
+            <div class="status ${out ? "out" : ""}">${escapeHtml(cell.status || "")}</div>
+          </div>
+          <div class="meta-grid">
+            <span>ID：${escapeHtml(cell.cellId)}</span>
+            <span>位置：${cell.rack}号 ${cell.layer}层</span>
+            <span>数量：${cell.quantity}管</span>
+            <span>代数：${escapeHtml(cell.passage || "-")}</span>
+            <span>冻存人：${escapeHtml(cell.frozenBy || "-")}</span>
+            <span>冻存：${escapeHtml(cell.frozenDate || "-")}</span>
+            <span>培养基：${escapeHtml(cell.medium || "-")}</span>
+            <span>备注：${escapeHtml(cell.note || "-")}</span>
+          </div>
+          <div class="card-actions">
+            <button class="ghost small" data-records="${escapeAttr(cell.cellId)}" ${cell.withdrawRecords ? "" : "disabled"}>取出记录</button>
+            ${state.adminToken ? `<button class="warning small" data-edit="${escapeAttr(cell.cellId)}">修改</button>` : ""}
+          </div>
+        </article>
+      `;
+    }
+
+    function renderStoreForm() {
+      app.innerHTML = `
+        <section class="panel stack brand-panel">
+          <div class="row tight">
+            ${backButton()}
+            <h2 style="margin:0; flex:1;">存入细胞</h2>
+          </div>
+          <form id="storeForm" class="stack">
+            <div class="row">
+              <label>提手号<select name="rack">${optionRange(6, "", false)}</select></label>
+              <label>层数<select name="layer">${optionRange(5, "", false)}</select></label>
+            </div>
+            <label>细胞名称<input name="name" required autocomplete="off"></label>
+            <div class="row">
+              <label>数量（管）<input name="quantity" type="number" min="1" step="1" required></label>
+              <label>代数（代）<input name="passage" autocomplete="off"></label>
+            </div>
+            <label>冻存时间<input name="frozenDate" type="date" required value="${today()}"></label>
+            <label>所用培养基<input name="medium" autocomplete="off"></label>
+            <label>备注<textarea name="note" placeholder="中文注释或说明"></textarea></label>
+            <div class="notice">冻存人：${escapeHtml(state.member)}</div>
+            <button class="primary" type="submit">提交存入</button>
+          </form>
+        </section>
+      `;
+      document.getElementById("backMenu").onclick = renderMenu;
+      document.getElementById("storeForm").onsubmit = submitStore;
+    }
+
+    async function submitStore(event) {
+      event.preventDefault();
+      const form = new FormData(event.currentTarget);
+      const body = Object.fromEntries(form.entries());
+      body.frozenBy = state.member;
+      setLoading(true, "正在存入...");
+      try {
+        await api("/cells", { method: "POST", body });
+        showToast("存入成功。");
+        renderMenu();
+      } catch (error) {
+        showToast(error.message, "error");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function renderTakeoutForm() {
+      app.innerHTML = `
+        <section class="panel stack brand-panel">
+          <div class="row tight">
+            ${backButton()}
+            <h2 style="margin:0; flex:1;">取出细胞</h2>
+          </div>
+          <div class="row">
+            <label>提手号<select id="takeRack">${optionRange(6, "", false)}</select></label>
+            <label>层数<select id="takeLayer">${optionRange(5, "", false)}</select></label>
+          </div>
+          <button class="primary" id="loadLayerCells">加载该层细胞</button>
+        </section>
+        <section class="panel stack hidden" id="takeStep2">
+          <h2>选择细胞</h2>
+          <label>目标细胞<select id="takeCell"></select></label>
+          <div id="takeCellInfo" class="notice"></div>
+          <label>取出数量<input id="takeQty" type="number" min="1" step="1"></label>
+          <label>取出时间<input id="takeTime" type="datetime-local" value="${nowLocalMinute()}"></label>
+          <button class="primary" id="submitTakeout">提交取出</button>
+        </section>
+      `;
+      document.getElementById("backMenu").onclick = renderMenu;
+      document.getElementById("loadLayerCells").onclick = loadLayerCells;
+      document.getElementById("submitTakeout").onclick = submitTakeout;
+      document.getElementById("takeCell").onchange = updateTakeCellInfo;
+    }
+
+    async function loadLayerCells() {
+      const rack = document.getElementById("takeRack").value;
+      const layer = document.getElementById("takeLayer").value;
+      setLoading(true, "正在加载该层...");
+      try {
+        const query = new URLSearchParams({ rack, layer, status: "在库" });
+        const data = await api(`/cells?${query.toString()}`);
+        state.layerCells = data.cells || [];
+        const select = document.getElementById("takeCell");
+        select.innerHTML = state.layerCells.length
+          ? state.layerCells.map((cell) => `<option value="${escapeAttr(cell.cellId)}">${escapeHtml(cell.name)}｜${escapeHtml(cell.passage || "-")}｜剩余${cell.quantity}管</option>`).join("")
+          : `<option value="">该层暂无在库细胞</option>`;
+        document.getElementById("takeStep2").classList.remove("hidden");
+        updateTakeCellInfo();
+      } catch (error) {
+        showToast(error.message, "error");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function updateTakeCellInfo() {
+      const cell = getSelectedTakeCell();
+      const info = document.getElementById("takeCellInfo");
+      if (!cell) {
+        info.textContent = "请选择目标细胞。";
+        return;
+      }
+      info.textContent = `${cell.name}，${cell.rack}号${cell.layer}层，剩余 ${cell.quantity} 管`;
+      document.getElementById("takeQty").max = cell.quantity;
+    }
+
+    function getSelectedTakeCell() {
+      const id = document.getElementById("takeCell").value;
+      return (state.layerCells || []).find((cell) => cell.cellId === id);
+    }
+
+    async function submitTakeout() {
+      const cell = getSelectedTakeCell();
+      if (!cell) return showToast("请选择目标细胞。", "error");
+      const quantity = Number(document.getElementById("takeQty").value);
+      if (!Number.isInteger(quantity) || quantity <= 0 || quantity > cell.quantity) {
+        showToast("取出数量必须为正整数，且不能超过库存。", "error");
+        return;
+      }
+      const body = {
+        action: "takeout",
+        actor: state.member,
+        quantity,
+        time: document.getElementById("takeTime").value || nowLocalMinute(),
+      };
+      setLoading(true, "正在取出...");
+      try {
+        await api(`/cells/${encodeURIComponent(cell.cellId)}`, { method: "PUT", body });
+        showToast("取出成功。");
+        renderMenu();
+      } catch (error) {
+        showToast(error.message, "error");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function showRecords(cell) {
+      const records = splitRecords(cell?.withdrawRecords || "");
+      showModal(`
+        <h2>取出记录</h2>
+        <h3>${escapeHtml(cell?.name || "")}</h3>
+        ${records.length ? `<ol class="record-list">${records.map((record) => `<li>${escapeHtml(record)}</li>`).join("")}</ol>` : `<div class="empty">暂无取出记录</div>`}
+        <button class="primary" data-close>关闭</button>
+      `);
+    }
+
+    function showAdminLogin() {
+      showModal(`
+        <h2>管理员登录</h2>
+        <label>密码<input id="adminPassword" type="password" autocomplete="current-password"></label>
+        <button class="primary" id="adminLoginBtn">登录</button>
+        <button class="ghost" data-close>取消</button>
+      `);
+      document.getElementById("adminLoginBtn").onclick = async () => {
+        const password = document.getElementById("adminPassword").value;
+        setLoading(true, "正在登录...");
+        try {
+          const data = await api("/admin/login", { method: "POST", body: { password } });
+          state.adminToken = data.token;
+          localStorage.setItem("cryoAdminToken", state.adminToken);
+          closeModal();
+          showToast("管理员登录成功。");
+          renderCellLibrary();
+        } catch (error) {
+          showToast(error.message, "error");
+        } finally {
+          setLoading(false);
+        }
+      };
+    }
+
+    function showEditCell(cell) {
+      if (!cell) return;
+      showModal(`
+        <h2>修改细胞记录</h2>
+        <form id="editForm" class="stack">
+          <label>细胞 ID<input name="cellId" value="${escapeAttr(cell.cellId)}"></label>
+          <div class="row">
+            <label>提手号<select name="rack">${optionRange(6, "", false, cell.rack)}</select></label>
+            <label>层数<select name="layer">${optionRange(5, "", false, cell.layer)}</select></label>
+          </div>
+          <label>细胞名称<input name="name" value="${escapeAttr(cell.name)}"></label>
+          <div class="row">
+            <label>数量<input name="quantity" type="number" min="0" step="1" value="${cell.quantity}"></label>
+            <label>代数<input name="passage" value="${escapeAttr(cell.passage)}"></label>
+          </div>
+          <label>冻存人<select name="frozenBy">${state.members.map((name) => `<option value="${escapeAttr(name)}" ${name === cell.frozenBy ? "selected" : ""}>${escapeHtml(name)}</option>`).join("")}</select></label>
+          <label>冻存时间<input name="frozenDate" value="${escapeAttr(cell.frozenDate)}"></label>
+          <label>所用培养基<input name="medium" value="${escapeAttr(cell.medium)}"></label>
+          <label>备注<textarea name="note">${escapeHtml(cell.note)}</textarea></label>
+          <label>状态<input name="status" value="${escapeAttr(cell.status)}"></label>
+          <label>取出记录<textarea name="withdrawRecords">${escapeHtml(splitRecords(cell.withdrawRecords).join("\\n"))}</textarea></label>
+          <button class="primary" type="submit">保存</button>
+          <button class="ghost" type="button" data-close>取消</button>
+        </form>
+      `);
+      document.getElementById("editForm").onsubmit = async (event) => {
+        event.preventDefault();
+        const body = { action: "adminUpdate", cell: Object.fromEntries(new FormData(event.currentTarget).entries()) };
+        setLoading(true, "正在保存...");
+        try {
+          await api(`/cells/${encodeURIComponent(cell.cellId)}`, { method: "PUT", body, admin: true });
+          closeModal();
+          showToast("保存成功。");
+          await loadCells();
+        } catch (error) {
+          showToast(error.message, "error");
+        } finally {
+          setLoading(false);
+        }
+      };
+    }
+
+    async function exportCells() {
+      setLoading(true, "正在导出...");
+      try {
+        const response = await api("/export", {
+          method: "POST",
+          body: state.filters,
+          admin: true,
+          raw: true,
+          timeout: 25000,
+        });
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `cells-${today()}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        showToast(error.message, "error");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function showModal(html) {
+      modal.innerHTML = `<div class="modal-box">${html}</div>`;
+      modal.classList.add("show");
+      modal.querySelectorAll("[data-close]").forEach((button) => button.onclick = closeModal);
+      modal.onclick = (event) => {
+        if (event.target === modal) closeModal();
+      };
+    }
+
+    function closeModal() {
+      modal.classList.remove("show");
+      modal.innerHTML = "";
+    }
+
+    function optionRange(max, allLabel = "", includeAll = true, selected = "") {
+      const all = includeAll ? `<option value="all">${allLabel || "全部"}</option>` : "";
+      let html = all;
+      for (let i = 1; i <= max; i++) {
+        html += `<option value="${i}" ${Number(selected) === i ? "selected" : ""}>${i}</option>`;
+      }
+      return html;
+    }
+
+    function splitRecords(value) {
+      return String(value || "").split(RECORD_SPLIT_RE).map((item) => item.trim()).filter(Boolean);
+    }
+
+    function today() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, "0");
+      const d = String(now.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function nowLocalMinute() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, "0");
+      const d = String(now.getDate()).padStart(2, "0");
+      const h = String(now.getHours()).padStart(2, "0");
+      const min = String(now.getMinutes()).padStart(2, "0");
+      return `${y}-${m}-${d}T${h}:${min}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      }[char]));
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value).replace(/`/g, "&#96;");
+    }
+  </script>
+</body>
+</html>
