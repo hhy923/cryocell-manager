@@ -96,9 +96,10 @@ if(PARAMS.get('api')){API_BASE=PARAMS.get('api');LS.set('api_base',API_BASE)}
 async function api(path,opts={}){
   if(!API_BASE)throw new Error('请先配置 API 地址');
   const url=`${API_BASE}/api${path}`;
-  const res=await fetch(url,{headers:{'Content-Type':'application/json',...(opts.token?{Authorization:`Bearer ${opts.token}`}:{})},method:opts.method||'GET',body:opts.body?JSON.stringify(opts.body):undefined});
-  const data=await res.json();
-  if(!res.ok&&data.error)throw new Error(data.error+(data.details?'：'+data.details.join('; '):''));
+  const res=await fetch(url,{mode:'cors',headers:{'Content-Type':'application/json',...(opts.token?{Authorization:`Bearer ${opts.token}`}:{})},method:opts.method||'GET',body:opts.body?JSON.stringify(opts.body):undefined});
+  let data;
+  try{data=await res.json()}catch{throw new Error(`服务器返回异常 (${res.status})`)}
+  if(!res.ok)throw new Error(data.error||`请求失败(${res.status})`+(data.details?'：'+data.details.join('; '):''));
   return data;
 }
 
@@ -110,7 +111,7 @@ function setState(s){Object.assign(state,s);render();}
 // ============ Toast ============
 function toast(msg,type='success'){
   const t=document.createElement('div');t.className=`toast toast-${type}`;t.textContent=msg;document.body.appendChild(t);
-  setTimeout(()=>t.remove(),2500);
+  setTimeout(()=>t.remove(),6000);
 }
 
 // ============ Render ============
@@ -336,7 +337,7 @@ async function initApp(){
     state.operator=LS.get('operator','')||(state.members[0]||'');
     state.adminToken=LS.get('admin_token','');
     await loadCells();
-  }catch(e){toast('初始化失败：'+e.message,'error');setState({screen:'menu'})}
+  }catch(e){console.error('Init error:',e);toast('初始化失败：'+e.message,'error');setState({screen:'menu'})}
 }
 
 // Start
