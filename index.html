@@ -90,7 +90,7 @@ const LS={get(k,d){try{return localStorage.getItem(k)||d}catch{return d}},set(k,
 
 // ============ API ============
 const PARAMS=new URLSearchParams(location.search);
-let API_BASE=LS.get('api_base','')||PARAMS.get('api')||'https://genglab-cryocell123-d9b9982365ac-1450691061.ap-shanghai.app.tcloudbase.com';
+let API_BASE=LS.get('api_base','')||PARAMS.get('api')||'https://cryo-cell-manager.h253130526.workers.dev';
 if(PARAMS.get('api'))LS.set('api_base',PARAMS.get('api'));
 
 async function api(path,opts={}){
@@ -104,7 +104,7 @@ async function api(path,opts={}){
 }
 
 // ============ App State ============
-let state={screen:'loading',operator:LS.get('operator',''),adminToken:LS.get('admin_token',''),members:[],cells:[],modal:null};
+let state={screen:'setup',operator:LS.get('operator',''),adminToken:LS.get('admin_token',''),members:[],cells:[],modal:null};
 
 function setState(s){Object.assign(state,s);render();}
 
@@ -124,7 +124,7 @@ function h(tag,attrs={},...children){
 
 function render(){
   const app=document.getElementById('app');app.innerHTML='';
-  if(!API_BASE){renderSetup(app);return}
+  if(state.screen==='setup'||!API_BASE){renderSetup(app);return}
   if(state.screen==='loading'){renderLoading(app);return}
   if(state.screen==='menu'){renderMenu(app);return}
   if(state.screen==='cells'){renderCells(app);return}
@@ -340,8 +340,9 @@ async function initApp(){
   }catch(e){console.error('Init error:',e);toast('初始化失败：'+e.message,'error');setState({screen:'menu'})}
 }
 
-// Start
-if(API_BASE){initApp()}else{render()}
+// Start - 始终先显示配置页
+let state={screen:'setup',operator:LS.get('operator',''),adminToken:LS.get('admin_token',''),members:[],cells:[],modal:null};
+render();
 </script>
 </body>
 </html>
