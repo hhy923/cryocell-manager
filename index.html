@@ -89,9 +89,9 @@ select.form-input{background:#fff}
 const LS={get(k,d){try{return localStorage.getItem(k)||d}catch{return d}},set(k,v){try{localStorage.setItem(k,v)}catch{}}};
 
 // ============ API ============
-let API_BASE=LS.get('api_base','');
 const PARAMS=new URLSearchParams(location.search);
-if(PARAMS.get('api')){API_BASE=PARAMS.get('api');LS.set('api_base',API_BASE)}
+let API_BASE=LS.get('api_base','')||PARAMS.get('api')||'https://genglab-cryocell123-d9b9982365ac-1450691061.ap-shanghai.app.tcloudbase.com';
+if(PARAMS.get('api'))LS.set('api_base',PARAMS.get('api'));
 
 async function api(path,opts={}){
   if(!API_BASE)throw new Error('请先配置 API 地址');
