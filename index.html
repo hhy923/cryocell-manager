@@ -340,7 +340,7 @@ async function initApp(){
 }
 
 // Start
-initApp();
+if(API_BASE){initApp()}else{render()}
 </script>
 </body>
 </html>
