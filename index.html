@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>冻存细胞管理系统</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:#eef1f5;color:#333;min-height:100vh}
+.container{max-width:520px;margin:0 auto;padding:12px}
+/* Header */
+.header{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;border-radius:8px;background:#4a90d9;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:18px;flex-shrink:0}
+.header-info{flex:1}
+.header-info h1{font-size:16px;font-weight:600}
+.header-info .sub{font-size:12px;color:#999;margin-top:2px}
+/* Card */
+.card{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.card-title{font-size:14px;font-weight:600;margin-bottom:12px;color:#555}
+/* Form */
+.form-group{margin-bottom:12px}
+.form-label{display:block;font-size:13px;color:#666;margin-bottom:4px}
+.form-input{width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:15px;outline:none;transition:border .2s;-webkit-appearance:none}
+.form-input:focus{border-color:#4a90d9}
+.form-row{display:flex;gap:8px}
+.form-row .form-group{flex:1}
+select.form-input{background:#fff}
+/* Buttons */
+.btn{display:block;width:100%;padding:12px;border:none;border-radius:8px;font-size:15px;font-weight:500;cursor:pointer;transition:all .2s;text-align:center}
+.btn-primary{background:#4a90d9;color:#fff}
+.btn-primary:active{background:#3a7bc8}
+.btn-danger{background:#e74c3c;color:#fff}
+.btn-danger:active{background:#c0392b}
+.btn-outline{background:#fff;color:#4a90d9;border:1px solid #4a90d9}
+.btn-sm{padding:8px 16px;font-size:13px;width:auto;display:inline-block}
+.btn:disabled{opacity:.5;pointer-events:none}
+/* Menu grid */
+.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.menu-item{background:#fff;border-radius:12px;padding:20px 16px;text-align:center;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.08);transition:transform .15s}
+.menu-item:active{transform:scale(.97)}
+.menu-icon{font-size:28px;margin-bottom:8px}
+.menu-label{font-size:13px;color:#555;font-weight:500}
+/* Cell list */
+.cell-item{background:#f8f9fb;border-radius:8px;padding:12px;margin-bottom:8px}
+.cell-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.cell-name{font-weight:600;font-size:14px}
+.cell-status{padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500}
+.status-in{background:#e8f5e9;color:#2e7d32}
+.status-out{background:#fce4ec;color:#c62828}
+.cell-detail{font-size:12px;color:#888;line-height:1.6}
+.cell-actions{margin-top:8px;display:flex;gap:6px}
+/* Tags */
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;background:#e3e8ef;color:#666;margin-right:4px}
+/* Modal */
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.4);z-index:100;display:flex;align-items:flex-end;justify-content:center}
+.modal{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:520px;max-height:85vh;overflow-y:auto;padding:20px;animation:slideUp .25s}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:16px}
+/* Toast */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:200;padding:10px 20px;border-radius:8px;font-size:14px;color:#fff;animation:fadeIn .3s}
+.toast-success{background:#2e7d32}
+.toast-error{background:#c62828}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+/* Setup */
+.setup{padding:40px 20px;text-align:center}
+.setup h2{font-size:18px;margin-bottom:8px}
+.setup p{font-size:13px;color:#999;margin-bottom:20px}
+/* Loading */
+.loading{text-align:center;padding:40px;color:#999}
+.spinner{width:30px;height:30px;border:3px solid #e3e8ef;border-top-color:#4a90d9;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* Tab bar */
+.tab-bar{display:flex;background:#f0f2f5;border-radius:8px;padding:3px;margin-bottom:12px}
+.tab{flex:1;text-align:center;padding:8px;border-radius:6px;font-size:13px;cursor:pointer;color:#888;transition:all .2s}
+.tab.active{background:#fff;color:#4a90d9;font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+/* Empty state */
+.empty{text-align:center;padding:40px 20px;color:#bbb}
+.empty-icon{font-size:48px;margin-bottom:8px}
+/* Links */
+.link{color:#4a90d9;font-size:13px;text-decoration:none}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="container" id="app"></div>
+
+<script>
+// ============ Storage ============
+const LS={get(k,d){try{return localStorage.getItem(k)||d}catch{return d}},set(k,v){try{localStorage.setItem(k,v)}catch{}}};
+
+// ============ API ============
+let API_BASE=LS.get('api_base','');
+const PARAMS=new URLSearchParams(location.search);
+if(PARAMS.get('api')){API_BASE=PARAMS.get('api');LS.set('api_base',API_BASE)}
+
+async function api(path,opts={}){
+  if(!API_BASE)throw new Error('请先配置 API 地址');
+  const url=`${API_BASE}/api${path}`;
+  const res=await fetch(url,{headers:{'Content-Type':'application/json',...(opts.token?{Authorization:`Bearer ${opts.token}`}:{})},method:opts.method||'GET',body:opts.body?JSON.stringify(opts.body):undefined});
+  const data=await res.json();
+  if(!res.ok&&data.error)throw new Error(data.error+(data.details?'：'+data.details.join('; '):''));
+  return data;
+}
+
+// ============ App State ============
+let state={screen:'loading',operator:LS.get('operator',''),adminToken:LS.get('admin_token',''),members:[],cells:[],modal:null};
+
+function setState(s){Object.assign(state,s);render();}
+
+// ============ Toast ============
+function toast(msg,type='success'){
+  const t=document.createElement('div');t.className=`toast toast-${type}`;t.textContent=msg;document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2500);
+}
+
+// ============ Render ============
+function h(tag,attrs={},...children){
+  const el=document.createElement(tag);
+  for(const[k,v]of Object.entries(attrs)){if(k==='className')el.className=v;else if(k.startsWith('on'))el.addEventListener(k.slice(2).toLowerCase(),v);else el.setAttribute(k,v)}
+  children.forEach(c=>{if(typeof c==='string')el.appendChild(document.createTextNode(c));else if(c)el.appendChild(c)});
+  return el;
+}
+
+function render(){
+  const app=document.getElementById('app');app.innerHTML='';
+  if(!API_BASE){renderSetup(app);return}
+  if(state.screen==='loading'){renderLoading(app);return}
+  if(state.screen==='menu'){renderMenu(app);return}
+  if(state.screen==='cells'){renderCells(app);return}
+  if(state.screen==='add'){renderAdd(app);return}
+  if(state.screen==='admin'){renderAdmin(app);return}
+  renderMenu(app);
+}
+
+function renderSetup(app){
+  app.innerHTML='';
+  const d=h('div',{className:'setup'},h('h2',{},'🧬 冻存细胞管理系统'),h('p',{},'请配置后端 API 地址'));
+  const inp=h('input',{className:'form-input',placeholder:'https://your-worker.workers.dev',value:API_BASE||'',style:'margin-bottom:12px'});
+  const btn=h('button',{className:'btn btn-primary'},'连接');
+  btn.addEventListener('click',async()=>{
+    API_BASE=inp.value.trim().replace(/\/+$/,'');LS.set('api_base',API_BASE);
+    try{await api('/health');toast('连接成功！');initApp()}catch(e){toast('连接失败：'+e.message,'error')}
+  });
+  d.appendChild(inp);d.appendChild(btn);
+  app.appendChild(d);
+}
+
+function renderLoading(app){
+  app.innerHTML='';
+  const d=h('div',{className:'loading'},h('div',{className:'spinner'}),h('div',{},'加载中...'));
+  app.appendChild(d);
+}
+
+function renderMenu(app){
+  app.innerHTML='';
+  app.appendChild(h('div',{className:'header'},
+    h('div',{className:'logo'},{},'🧬'),
+    h('div',{className:'header-info'},h('h1',{},'冻存细胞管理'),h('div',{className:'sub'},state.operator?`操作人：${state.operator}`:'请选择操作人'))
+  ));
+  // Operator selector
+  const sel=h('select',{className:'form-input',style:'margin-bottom:12px'},h('option',{value:''},'-- 选择操作人员 --'));
+  state.members.forEach(m=>sel.appendChild(h('option',{value:m},m)));
+  sel.value=state.operator;
+  sel.addEventListener('change',()=>{state.operator=sel.value;LS.set('operator',sel.value);renderMenu(app)});
+  app.appendChild(h('div',{className:'card'},sel));
+  // Menu
+  const menu=h('div',{className:'menu-grid'},
+    h('div',{className:'menu-item',onclick:()=>setState({screen:'cells'})},h('div',{className:'menu-icon'},'🔬'),h('div',{className:'menu-label'},'查看细胞库')),
+    h('div',{className:'menu-item',onclick:()=>setState({screen:'add'})},h('div',{className:'menu-icon'},'📥'),h('div',{className:'menu-label'},'存入细胞')),
+    h('div',{className:'menu-item',onclick:()=>{if(!state.operator)return toast('请先选择操作人员','error');setState({screen:'admin'})}},h('div',{className:'menu-icon'},'⚙️'),h('div',{className:'menu-label'},'管理员')),
+    h('div',{className:'menu-item',onclick:()=>{API_BASE='';LS.set('api_base','');setState({screen:'menu'})}},h('div',{className:'menu-icon'},'🔌'),h('div',{className:'menu-label'},'切换后端')),
+  );
+  app.appendChild(menu);
+}
+
+function renderCells(app){
+  const allCells=state.cells||[];
+  const filter=state.filter||'all';
+  let cells=allCells;
+  if(filter==='in')cells=allCells.filter(c=>c.quantity>0);
+  else if(filter==='out')cells=allCells.filter(c=>c.quantity<=0);
+
+  app.innerHTML='';
+  const bar=h('div',{className:'header'},
+    h('button',{className:'btn btn-outline btn-sm',onclick:()=>setState({screen:'menu'})},'← 返回'),
+    h('div',{className:'header-info',style:'text-align:right'},h('div',{style:'font-size:14px;font-weight:600'},`共 ${allCells.length} 条`))
+  );
+  app.appendChild(bar);
+
+  // Tabs
+  const tabs=h('div',{className:'tab-bar'},
+    h('div',{className:`tab ${filter==='all'?'active':''}`,onclick:()=>{state.filter='all';renderCells(app)}},'全部'),
+    h('div',{className:`tab ${filter==='in'?'active':''}`,onclick:()=>{state.filter='in';renderCells(app)}},'在库'),
+    h('div',{className:`tab ${filter==='out'?'active':''}`,onclick:()=>{state.filter='out';renderCells(app)}},'已取出'),
+  );
+  app.appendChild(tabs);
+
+  if(cells.length===0){
+    app.appendChild(h('div',{className:'empty'},h('div',{className:'empty-icon'},'📭'),h('div',{},'暂无数据')));
+    return;
+  }
+
+  cells.slice(0,state.showMore?cells.length:80).forEach(c=>{
+    const stCls=c.quantity>0?'status-in':'status-out';
+    const item=h('div',{className:'cell-item'},
+      h('div',{className:'cell-header'},
+        h('span',{className:'cell-name'},c.name||'未知'),
+        h('span',{className:`cell-status ${stCls}`},c.status||(c.quantity>0?'在库':'已取出'))
+      ),
+      h('div',{className:'cell-detail'},
+        `提手号${c.rack} · 第${c.layer}层 · ${c.quantity}管 · ${c.passage||'-'} · ${c.frozenBy}`,
+      ),
+      h('div',{className:'cell-detail'},`冻存:${c.frozenDate||'-'} · ID:${c.cellId}`),
+    );
+    if(c.quantity>0&&state.operator){
+      const takeBtn=h('button',{className:'btn btn-sm btn-outline'},'取出');
+      takeBtn.addEventListener('click',()=>showTakeout(c));
+      item.appendChild(h('div',{className:'cell-actions'},takeBtn));
+    }
+    app.appendChild(item);
+  });
+
+  if(!state.showMore&&cells.length>80){
+    app.appendChild(h('div',{style:'text-align:center;padding:12px'},
+      h('button',{className:'btn btn-outline btn-sm',onclick:()=>{state.showMore=true;renderCells(app)}},'加载更多...')
+    ));
+  }
+}
+
+function showTakeout(cell){
+  const overlay=h('div',{className:'modal-overlay'});
+  const qty=h('input',{className:'form-input',type:'number',min:1,max:cell.quantity,value:1,placeholder:'取出管数'});
+  const ok=h('button',{className:'btn btn-primary',style:'margin-top:12px'},'确认取出');
+  ok.addEventListener('click',async()=>{
+    const q=parseInt(qty.value);
+    if(!q||q<1||q>cell.quantity)return toast('数量无效','error');
+    try{
+      await api(`/cells/${cell.cellId}`,{method:'PUT',body:{action:'takeout',actor:state.operator,quantity:q,time:new Date().toISOString()}});
+      toast(`成功取出 ${q} 管`);overlay.remove();loadCells();
+    }catch(e){toast(e.message,'error')}
+  });
+  const cancel=h('button',{className:'btn btn-outline',style:'margin-top:8px'},'取消');
+  cancel.addEventListener('click',()=>overlay.remove());
+
+  overlay.appendChild(h('div',{className:'modal'},
+    h('div',{className:'modal-title'},{},`取出 ${cell.name}`),
+    h('div',{className:'form-label'},`剩余 ${cell.quantity} 管，提手号${cell.rack}·第${cell.layer}层`),
+    qty,ok,cancel
+  ));
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove()});
+  document.body.appendChild(overlay);
+}
+
+function renderAdd(app){
+  app.innerHTML='';
+  app.appendChild(h('div',{className:'header'},
+    h('button',{className:'btn btn-outline btn-sm',onclick:()=>setState({screen:'menu'})},'← 返回'),
+    h('div',{className:'header-info',style:'text-align:right'},h('div',{style:'font-size:14px;font-weight:600'},'存入细胞'))
+  ));
+  const form=h('div',{className:'card'});
+  const fields=[
+    ['提手号(1-6)','rack','number',1],
+    ['层数(1-5)','layer','number',1],
+    ['细胞名称*','name','text',''],
+    ['数量(管)*','quantity','number',1],
+    ['代数','passage','text',''],
+    ['冻存人*','frozenBy','text',state.operator],
+    ['冻存时间','frozenDate','date',new Date().toISOString().slice(0,10)],
+    ['培养基','medium','text',''],
+    ['备注','note','text',''],
+  ];
+  const inputs={};
+  fields.forEach(([label,key,type,def])=>{
+    form.appendChild(h('div',{className:'form-group'},
+      h('label',{className:'form-label'},label),
+      (inputs[key]=h('input',{className:'form-input',type,value:def,placeholder:label}))
+    ));
+  });
+  const submit=h('button',{className:'btn btn-primary',style:'margin-top:8px'},'确认存入');
+  submit.addEventListener('click',async()=>{
+    if(!state.operator)return toast('请先在主页选择操作人员','error');
+    const data={};
+    fields.forEach(([,key])=>{data[key]=inputs[key].value});
+    try{
+      const r=await api('/cells',{method:'POST',body:data});
+      toast(`存入成功！ID: ${r.cellId}`);setState({screen:'cells'});
+    }catch(e){toast(e.message,'error')}
+  });
+  form.appendChild(submit);
+  app.appendChild(form);
+}
+
+function renderAdmin(app){
+  app.innerHTML='';
+  app.appendChild(h('div',{className:'header'},
+    h('button',{className:'btn btn-outline btn-sm',onclick:()=>setState({screen:'menu'})},'← 返回'),
+    h('div',{className:'header-info',style:'text-align:right'},h('div',{style:'font-size:14px;font-weight:600'},'管理员'))
+  ));
+  if(!state.adminToken){
+    const pw=h('input',{className:'form-input',type:'password',placeholder:'管理员密码'});
+    const login=h('button',{className:'btn btn-primary',style:'margin-top:8px'},'登录');
+    login.addEventListener('click',async()=>{
+      try{const r=await api('/admin/login',{method:'POST',body:{password:pw.value}});state.adminToken=r.token;LS.set('admin_token',r.token);renderAdmin(app);toast('登录成功')}catch(e){toast(e.message,'error')}
+    });
+    app.appendChild(h('div',{className:'card'},h('div',{className:'modal-title'},'管理员登录'),pw,login));
+    return;
+  }
+  const menu=h('div',{className:'menu-grid'},
+    h('div',{className:'menu-item',onclick:exportCSV},h('div',{className:'menu-icon'},'📥'),h('div',{className:'menu-label'},'导出 CSV')),
+    h('div',{className:'menu-item',onclick:()=>{state.adminToken='';LS.set('admin_token','');state.screen='menu';render()}},h('div',{className:'menu-icon'},'🚪'),h('div',{className:'menu-label'},'退出登录')),
+  );
+  app.appendChild(menu);
+}
+
+async function exportCSV(){
+  try{
+    const r=await fetch(`${API_BASE}/api/export`,{method:'POST',headers:{Authorization:`Bearer ${state.adminToken}`}});
+    const blob=await r.blob();
+    const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='cells_export.csv';a.click();URL.revokeObjectURL(url);
+    toast('导出成功');
+  }catch(e){toast('导出失败','error')}
+}
+
+async function loadCells(){
+  try{
+    const data=await api('/cells?limit=200');
+    setState({cells:data.cells||[],screen:state.screen==='loading'?'menu':state.screen});
+  }catch(e){toast('加载失败：'+e.message,'error');setState({screen:'menu'})}
+}
+
+async function initApp(){
+  setState({screen:'loading'});
+  try{
+    const[memData]=await Promise.all([api('/members')]);
+    state.members=memData.members||[];
+    state.operator=LS.get('operator','')||(state.members[0]||'');
+    state.adminToken=LS.get('admin_token','');
+    await loadCells();
+  }catch(e){toast('初始化失败：'+e.message,'error');setState({screen:'menu'})}
+}
+
+// Start
+initApp();
+</script>
+</body>
+</html>
